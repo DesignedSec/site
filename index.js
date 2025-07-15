@@ -9,7 +9,6 @@ const PORT = process.env.PORT || 3000;
 const db = new sqlite3.Database(':memory:', (err) => {
   if (err) console.error(err.message);
   console.log('Connected to in-memory SQLite');
-});
   
   db.run(`CREATE TABLE IF NOT EXISTS requests (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
