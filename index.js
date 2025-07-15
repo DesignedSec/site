@@ -5,9 +5,11 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Initialize SQLite database
-const db = new sqlite3.Database('./database/logs.db', (err) => {
+// Use in-memory DB (wipes on server restart)
+const db = new sqlite3.Database(':memory:', (err) => {
   if (err) console.error(err.message);
-  console.log('Connected to SQLite database.');
+  console.log('Connected to in-memory SQLite');
+});
   
   db.run(`CREATE TABLE IF NOT EXISTS requests (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
