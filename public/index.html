@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Request Logger</title>
+    <style>
+        body { font-family: Arial; max-width: 1000px; margin: 0 auto; padding: 20px; }
+        .log-entry { background: #f8f8f8; padding: 15px; margin-bottom: 10px; border-radius: 5px; }
+        pre { margin: 5px 0; white-space: pre-wrap; }
+        button { padding: 8px 15px; margin: 5px; cursor: pointer; }
+        .timestamp { color: #666; font-size: 0.9em; }
+    </style>
+</head>
+<body>
+    <h1>HTTP Request Logger</h1>
+    
+    <div class="controls">
+        <button onclick="sendTestPost()">Send Test POST</button>
+        <button onclick="clearLogs()">Clear All Logs</button>
+        <button onclick="refreshLogs()">Refresh Logs</button>
+    </div>
+
+    <div id="logs-container">
+        <h2>Received Requests (<span id="count">0</span>)</h2>
+        <div id="logs"></div>
+    </div>
+
+    <script>
+        async function sendTestPost() {
+            const data = { 
+                message: "Test request",
+                random: Math.random().toString(36).substring(7),
+                time: new Date().toLocaleTimeString()
+            };
+            
+            await fetch('/', {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'X-Test-Header': 'test-value' 
+                },
+                body: JSON.stringify(data)
+            });
+            refreshLogs();
+        }
+
+        async function refreshLogs() {
+            const response = await fetch('/logs');
+            const logs = await response.json();
+            
+            document.getElementById('count').textContent = logs.length;
+            document.getElementById('logs').innerHTML = logs.map(log => `
+                <div class="log-entry">
+                    <div class="timestamp">${new Date(log.timestamp).toLocaleString()}</div>
+                    <div><strong>${log.method} ${log.path}</strong> from ${log.ip}</div>
+                    <pre>Headers: ${JSON.stringify(log.headers, null, 2)}</pre>
+                    ${log.body ? `<pre>Body: ${JSON.stringify(log.body, null, 2)}</pre>` : ''}
+                </div>
+            `).join('');
+        }
+
+        async function clearLogs() {
+            if(confirm('Are you sure you want to delete all logs?')) {
+                await fetch('/logs', { method: 'DELETE' });
+                refreshLogs();
+            }
+        }
+
+        // Auto-refresh every 3 seconds
+        setInterval(refreshLogs, 3000);
+        refreshLogs(); // Initial load
+    </script>
+</body>
+</html>
